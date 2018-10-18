@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html lang="en-US"
+      manifest = "cache.manifest">
+<head>
+    <meta charset="UTF-8">
+    <title>Flappy Moth</title>
+    <script type="text/javascript"
+        src = "simpleGame.js">
+    </script>
+    <script type="text/javascript"
+        src = "moth.js">
+    </script>
+    <script type="text/javascript"
+        src = "zapperPair.js">
+    </script>
+    <script type="text/javascript"
+        src = "background.js">
+    </script>
+    <script type="text/javascript">
+        let scene;
+        let canvas;
+        let moth;
+        let zapperPairs;
+        let background;
+        let gameOver = false;
+        let score = 0;
+        let scoreSound;
+        let flyButton;
+
+        function init() {
+            scene = new Scene();
+            moth = new Moth();
+            background = new Background();
+            zapperPairs = [new ZapperPair(), new ZapperPair()];
+            scoreSound = new Sound('assets/score.mp3');
+            flyButton = new GameButton("Fly");
+            flyButton.setPos(498, 776);
+            flyButton.setSize(120, 60);
+            scene.setSize(600, 800);
+            moth.reset();
+            zapperPairs[0].reset(scene.width + 50);
+            zapperPairs[1].reset((scene.width + 50) + 350);
+            scene.start();
+        }
+
+        function checkScore() {
+            zapperPairs.forEach(zapperPair => {
+                if (zapperPair.low.x === moth.x) {
+                    score++;
+                    scoreSound.play();
+                    document.getElementById('score').innerHTML = 'Score: ' + score;
+                }
+            });
+        }
+
+        function checkCollisions() {
+            zapperPairs.forEach(zapperPair => {
+                if (moth.collidesWith(zapperPair.high) || moth.collidesWith(zapperPair.low)) {
+                    zapperPairs.forEach(zapperPair => {
+                        zapperPair.setSpeed(0);
+                    });
+                    background.setSpeed(0);
+                    gameOver = true;
+                }
+            });
+        }
+
+        function update() {
+            scene.clear();
+            background.update();
+            background.wrap();
+            if (!gameOver) {
+                moth.checkInput();
+                checkScore();
+            }
+            moth.applyGravity();
+            zapperPairs.forEach(zapperPair => {
+                if (zapperPair.low.x < -50) {
+                    zapperPair.reset(scene.width + 50);
+                }
+            });
+            zapperPairs.forEach(zapperPair => {
+                zapperPair.update();
+            });
+            moth.update();
+            checkCollisions();
+        }
+    </script>
+</head>
+<body onload = "init()">
+    <div id="score">Score: 0</div>
+</body>
